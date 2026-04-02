@@ -1,26 +1,25 @@
 # Growth Nirvana Claude MCP Installer
 
-Install and maintain a ready-to-run MCP server entry for Claude Desktop with one command.
+Install and maintain a ready-to-run MCP server entry for Claude Code/editor workflows with one command.
 
 ## Why this is the best install UX
 
 - Users do not clone repos or edit JSON manually.
 - `npx` always runs the latest installer (or a pinned version).
-- Installer updates `claude_desktop_config.json` safely, preserving other MCP servers.
+- Installer updates a project-local `.mcp.json` safely, preserving other MCP servers.
 - Works as a repeatable command for onboarding and support.
 
-## Quick Start (Claude Desktop)
+## Quick Start (Project-local MCP config)
 
 ```bash
 npx @growthnirvana/claude-mcp-installer init
 ```
 
-This adds an MCP server entry named `growth-nirvana` in Claude Desktop config:
+This adds an MCP server entry named `growth-nirvana` to:
 
-- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- Windows: `~/AppData/Roaming/Claude/claude_desktop_config.json`
+- `./.mcp.json` (project root)
 
-Then fully quit and reopen Claude Desktop.
+Then reload your editor (VS Code/Cursor/Claude Code) so MCP config is re-read.
 
 ## Commands
 
@@ -40,15 +39,15 @@ npx @growthnirvana/claude-mcp-installer remove
 
 ## API Key
 
-The installer does **not** write `GROWTH_NIRVANA_API_KEY` into `claude_desktop_config.json`.
-Claude starts MCP servers as child processes, and those processes inherit Claude's app environment.
-So the key is read at runtime from environment variables available to Claude Desktop.
+The installer does **not** write `GROWTH_NIRVANA_API_KEY` into `.mcp.json`.
+Your editor/runtime starts MCP servers as child processes, and those processes inherit runtime environment variables.
+So the key is read at runtime from environment variables available to your editor session.
 
 ## Security Best Practices
 
-- Do not commit MCP config files that may contain secrets.
-- Prefer user-level Claude config (outside your repo) over project-local config.
-- If you use a repo-local config with `--config`, add MCP files to `.gitignore`.
+- Do not commit secret values in repo-local config files.
+- If you use project-local MCP config, add it to `.gitignore` when it may contain secrets.
+- Keep API keys in environment variables, not JSON config.
 
 Suggested `.gitignore` entries:
 
@@ -57,26 +56,25 @@ Suggested `.gitignore` entries:
 mcp.json
 .mcp.json
 .cursor/mcp.json
-claude_desktop_config.json
 ```
 
 ## Setting `GROWTH_NIRVANA_API_KEY` Safely
 
-Recommended (macOS, persistent for GUI apps like Claude/VS Code):
+Recommended (per-project shell session):
 
 ```bash
-launchctl setenv GROWTH_NIRVANA_API_KEY "your_api_key_here"
+export GROWTH_NIRVANA_API_KEY="your_api_key_here"
 ```
 
-Then fully quit and reopen Claude Desktop (and VS Code if needed).
+Then start/restart your editor from that shell session.
 
 Check it was set:
 
 ```bash
-launchctl getenv GROWTH_NIRVANA_API_KEY
+echo "$GROWTH_NIRVANA_API_KEY"
 ```
 
-Fallback (shell-only sessions):
+Persistent shell profile setup:
 
 ```bash
 echo 'export GROWTH_NIRVANA_API_KEY="your_api_key_here"' >> ~/.zshrc
@@ -85,8 +83,8 @@ source ~/.zshrc
 
 How the read path works:
 
-- `claude_desktop_config.json` starts the server with `npx -y growth-nirvana-mcp-server`.
-- Claude passes its environment to that process.
+- `.mcp.json` starts the server with `npx -y growth-nirvana-mcp-server`.
+- Your editor/runtime passes its environment to that process.
 - The server reads `GROWTH_NIRVANA_API_KEY` from that inherited environment.
 
 ## Releasing (Assumes `v1.0.0` already exists)

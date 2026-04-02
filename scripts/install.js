@@ -2,25 +2,10 @@
 "use strict";
 
 const fs = require("fs");
-const os = require("os");
 const path = require("path");
 
 const DEFAULT_SERVER_NAME = "growth-nirvana";
 const DEFAULT_SERVER_PACKAGE = "growth-nirvana-mcp-server";
-const DEFAULT_CONFIG_PATH_MAC = path.join(
-  os.homedir(),
-  "Library",
-  "Application Support",
-  "Claude",
-  "claude_desktop_config.json"
-);
-const DEFAULT_CONFIG_PATH_WIN = path.join(
-  os.homedir(),
-  "AppData",
-  "Roaming",
-  "Claude",
-  "claude_desktop_config.json"
-);
 
 const args = process.argv.slice(2);
 const command = args[0] || "init";
@@ -79,14 +64,14 @@ function handleInit(commandArgs) {
   ensureDirectory(path.dirname(configPath));
   fs.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
 
-  console.log(`Updated Claude MCP config:`);
+  console.log(`Updated MCP config:`);
   console.log(`  ${configPath}`);
   console.log("");
   console.log(`Added server "${serverName}" using package "${serverPackage}".`);
   console.log("");
   console.log("Next steps:");
-  console.log("1) Set GROWTH_NIRVANA_API_KEY in Claude's app environment (launchctl on macOS).");
-  console.log("2) Fully quit and reopen Claude Desktop.");
+  console.log("1) Set GROWTH_NIRVANA_API_KEY in your editor/runtime environment.");
+  console.log("2) Reload your editor so MCP config is re-read.");
 }
 
 function handleRemove(commandArgs) {
@@ -111,15 +96,8 @@ function resolveConfigPath(explicitPath) {
     return path.resolve(process.cwd(), explicitPath);
   }
 
-  if (process.platform === "darwin") {
-    return DEFAULT_CONFIG_PATH_MAC;
-  }
-
-  if (process.platform === "win32") {
-    return DEFAULT_CONFIG_PATH_WIN;
-  }
-
-  return path.join(os.homedir(), ".config", "Claude", "claude_desktop_config.json");
+  // Editor-agnostic default: project-local MCP config.
+  return path.join(process.cwd(), ".mcp.json");
 }
 
 function readJsonMaybe(filePath) {
@@ -165,6 +143,7 @@ function printHelp() {
   console.log("Examples:");
   console.log("  npx @growthnirvana/claude-mcp-installer init");
   console.log("  npx @growthnirvana/claude-mcp-installer init --force");
+  console.log("  npx @growthnirvana/claude-mcp-installer init --config .mcp.json");
   console.log("  npx @growthnirvana/claude-mcp-installer init --pin-server-version 1.2.3");
   console.log("  npx @growthnirvana/claude-mcp-installer remove");
 }
