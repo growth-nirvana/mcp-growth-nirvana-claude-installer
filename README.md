@@ -40,14 +40,54 @@ npx @growthnirvana/claude-mcp-installer remove
 
 ## API Key
 
-The installer writes `GROWTH_NIRVANA_API_KEY` into the Claude config from your current environment if present.
-If not present, it writes:
+The installer does **not** write `GROWTH_NIRVANA_API_KEY` into `claude_desktop_config.json`.
+Claude starts MCP servers as child processes, and those processes inherit Claude's app environment.
+So the key is read at runtime from environment variables available to Claude Desktop.
 
-```text
-REPLACE_WITH_GROWTH_NIRVANA_API_KEY
+## Security Best Practices
+
+- Do not commit MCP config files that may contain secrets.
+- Prefer user-level Claude config (outside your repo) over project-local config.
+- If you use a repo-local config with `--config`, add MCP files to `.gitignore`.
+
+Suggested `.gitignore` entries:
+
+```gitignore
+# MCP config files (may contain secrets)
+mcp.json
+.mcp.json
+.cursor/mcp.json
+claude_desktop_config.json
 ```
 
-Replace that value in `claude_desktop_config.json` before starting MCP in Claude.
+## Setting `GROWTH_NIRVANA_API_KEY` Safely
+
+Recommended (macOS, persistent for GUI apps like Claude/VS Code):
+
+```bash
+launchctl setenv GROWTH_NIRVANA_API_KEY "your_api_key_here"
+```
+
+Then fully quit and reopen Claude Desktop (and VS Code if needed).
+
+Check it was set:
+
+```bash
+launchctl getenv GROWTH_NIRVANA_API_KEY
+```
+
+Fallback (shell-only sessions):
+
+```bash
+echo 'export GROWTH_NIRVANA_API_KEY="your_api_key_here"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+How the read path works:
+
+- `claude_desktop_config.json` starts the server with `npx -y growth-nirvana-mcp-server`.
+- Claude passes its environment to that process.
+- The server reads `GROWTH_NIRVANA_API_KEY` from that inherited environment.
 
 ## Releasing (Assumes `v1.0.0` already exists)
 

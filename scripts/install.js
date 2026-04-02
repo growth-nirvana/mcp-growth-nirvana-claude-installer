@@ -69,8 +69,6 @@ function handleInit(commandArgs) {
     command: "npx",
     args: ["-y", serverPackage],
     env: {
-      GROWTH_NIRVANA_API_KEY:
-        process.env.GROWTH_NIRVANA_API_KEY || "REPLACE_WITH_GROWTH_NIRVANA_API_KEY",
       GROWTH_NIRVANA_BASE_URL:
         process.env.GROWTH_NIRVANA_BASE_URL || "https://app.growthnirvana.com",
       GROWTH_NIRVANA_TIMEOUT_MS: process.env.GROWTH_NIRVANA_TIMEOUT_MS || "15000",
@@ -87,7 +85,7 @@ function handleInit(commandArgs) {
   console.log(`Added server "${serverName}" using package "${serverPackage}".`);
   console.log("");
   console.log("Next steps:");
-  console.log("1) Set GROWTH_NIRVANA_API_KEY in your shell or Claude environment.");
+  console.log("1) Set GROWTH_NIRVANA_API_KEY in Claude's app environment (launchctl on macOS).");
   console.log("2) Fully quit and reopen Claude Desktop.");
 }
 
