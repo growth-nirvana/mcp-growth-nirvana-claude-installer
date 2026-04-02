@@ -1,6 +1,6 @@
 {
   "name": "@growthnirvana/claude-mcp-installer",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "CLI to configure Growth Nirvana MCP server in Claude Desktop.",
   "type": "commonjs",
   "bin": {
