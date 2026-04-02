@@ -2,10 +2,12 @@
 "use strict";
 
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 
 const DEFAULT_SERVER_NAME = "growth-nirvana";
 const DEFAULT_SERVER_PACKAGE = "growth-nirvana-mcp-server";
+const packageRoot = path.resolve(__dirname, "..");
 
 const args = process.argv.slice(2);
 const command = args[0] || "init";
@@ -22,6 +24,11 @@ if (command === "init") {
 
 if (command === "remove") {
   handleRemove(args.slice(1));
+  process.exit(0);
+}
+
+if (command === "add-skills") {
+  handleAddSkills(args.slice(1));
   process.exit(0);
 }
 
@@ -91,6 +98,39 @@ function handleRemove(commandArgs) {
   console.log(`  ${configPath}`);
 }
 
+function handleAddSkills(commandArgs) {
+  const sourceSkillsDir = path.join(packageRoot, "skills");
+  if (!fs.existsSync(sourceSkillsDir)) {
+    console.error(`Skills source directory not found: ${sourceSkillsDir}`);
+    process.exit(1);
+  }
+
+  const globalInstall = commandArgs.includes("--global");
+  const explicitTarget = getOptionValue(commandArgs, "--target");
+  const targetDir = resolveSkillsTarget(globalInstall, explicitTarget);
+  ensureDirectory(targetDir);
+
+  const skillFolders = fs
+    .readdirSync(sourceSkillsDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+
+  for (const skillName of skillFolders) {
+    const sourcePath = path.join(sourceSkillsDir, skillName);
+    const destinationPath = path.join(targetDir, skillName);
+    fs.cpSync(sourcePath, destinationPath, { recursive: true, force: true });
+  }
+
+  console.log(`Installed ${skillFolders.length} skill(s) to:`);
+  console.log(`  ${targetDir}`);
+  console.log("");
+  console.log("Installed skills:");
+  for (const skillName of skillFolders) {
+    console.log(`- ${skillName}`);
+  }
+}
+
 function resolveConfigPath(explicitPath) {
   if (explicitPath) {
     return path.resolve(process.cwd(), explicitPath);
@@ -98,6 +138,18 @@ function resolveConfigPath(explicitPath) {
 
   // Editor-agnostic default: project-local MCP config.
   return path.join(process.cwd(), ".mcp.json");
+}
+
+function resolveSkillsTarget(globalInstall, explicitTarget) {
+  if (explicitTarget) {
+    return path.resolve(process.cwd(), explicitTarget);
+  }
+
+  if (globalInstall) {
+    return path.join(os.homedir(), ".claude", "skills");
+  }
+
+  return path.join(process.cwd(), ".claude", "skills");
 }
 
 function readJsonMaybe(filePath) {
@@ -134,11 +186,12 @@ function ensureDirectory(dirPath) {
 }
 
 function printHelp() {
-  console.log("Growth Nirvana Claude MCP Installer");
+  console.log("Growth Nirvana Claude MCP + Skills Installer");
   console.log("");
   console.log("Usage:");
   console.log("  gn-claude-mcp init [--config <path>] [--server-name <name>] [--force] [--pin-server-version <version>]");
   console.log("  gn-claude-mcp remove [--config <path>] [--server-name <name>]");
+  console.log("  gn-claude-mcp add-skills [--global] [--target <path>]");
   console.log("");
   console.log("Examples:");
   console.log("  npx @growthnirvana/claude-mcp-installer init");
@@ -146,4 +199,6 @@ function printHelp() {
   console.log("  npx @growthnirvana/claude-mcp-installer init --config .mcp.json");
   console.log("  npx @growthnirvana/claude-mcp-installer init --pin-server-version 1.2.3");
   console.log("  npx @growthnirvana/claude-mcp-installer remove");
+  console.log("  npx @growthnirvana/claude-mcp-installer add-skills");
+  console.log("  npx @growthnirvana/claude-mcp-installer add-skills --global");
 }

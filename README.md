@@ -1,15 +1,19 @@
-# Growth Nirvana Claude MCP Installer
+# Growth Nirvana Claude MCP + Skills
 
-Install and maintain a ready-to-run MCP server entry for Claude Code/editor workflows with one command.
+Install and maintain a ready-to-run MCP server entry and Growth Nirvana skills for Claude Code/editor workflows.
 
 ## Why this is the best install UX
 
 - Users do not clone repos or edit JSON manually.
 - `npx` always runs the latest installer (or a pinned version).
 - Installer updates a project-local `.mcp.json` safely, preserving other MCP servers.
+- Includes Claude-compatible skills in standard `skills/<skill>/SKILL.md` format.
+- Includes a standard Claude plugin manifest at `.claude-plugin/plugin.json`.
 - Works as a repeatable command for onboarding and support.
 
-## Quick Start (Project-local MCP config)
+## Quick Start
+
+### 1) Initialize project MCP config
 
 ```bash
 npx @growthnirvana/claude-mcp-installer init
@@ -19,7 +23,25 @@ This adds an MCP server entry named `growth-nirvana` to:
 
 - `./.mcp.json` (project root)
 
-Then reload your editor (VS Code/Cursor/Claude Code) so MCP config is re-read.
+### 2) Install skills into your project
+
+```bash
+npx @growthnirvana/claude-mcp-installer add-skills
+```
+
+This installs skills to:
+
+- `./.claude/skills/`
+
+Then reload your editor (VS Code/Cursor/Claude Code) so MCP config and skills are re-read.
+
+## Claude Plugin Structure
+
+This repo also ships a standard Claude plugin layout:
+
+- `.claude-plugin/plugin.json`
+- `skills/<skill-name>/SKILL.md`
+- supporting files (`reference.md`, `examples.md`, etc.)
 
 ## Commands
 
@@ -28,6 +50,8 @@ npx @growthnirvana/claude-mcp-installer init
 npx @growthnirvana/claude-mcp-installer init --force
 npx @growthnirvana/claude-mcp-installer init --pin-server-version 1.2.3
 npx @growthnirvana/claude-mcp-installer remove
+npx @growthnirvana/claude-mcp-installer add-skills
+npx @growthnirvana/claude-mcp-installer add-skills --global
 ```
 
 ## Options
@@ -36,6 +60,8 @@ npx @growthnirvana/claude-mcp-installer remove
 - `--server-name <name>`: MCP server key (default: `growth-nirvana`)
 - `--force`: overwrite existing server entry when running `init`
 - `--pin-server-version <version>`: pin `growth-nirvana-mcp-server` version
+- `--global`: for `add-skills`, install to `~/.claude/skills`
+- `--target <path>`: for `add-skills`, install to a custom skills directory
 
 ## API Key
 

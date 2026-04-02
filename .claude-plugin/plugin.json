@@ -1,0 +1,11 @@
+{
+  "name": "growth-nirvana-skills",
+  "description": "Growth Nirvana analytics and transformation skills for Claude Code.",
+  "author": {
+    "name": "Growth Nirvana"
+  },
+  "homepage": "https://github.com/growth-nirvana/mcp-growth-nirvana-claude-installer",
+  "repository": "https://github.com/growth-nirvana/mcp-growth-nirvana-claude-installer",
+  "license": "MIT",
+  "skills": "./skills/"
+}
