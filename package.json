@@ -1,0 +1,28 @@
+{
+  "name": "@growthnirvana/claude-mcp-installer",
+  "version": "0.1.0",
+  "description": "CLI to configure Growth Nirvana MCP server in Claude Desktop.",
+  "type": "commonjs",
+  "bin": {
+    "gn-claude-mcp": "./scripts/install.js"
+  },
+  "main": "scripts/install.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "scripts/install.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "claude",
+    "mcp",
+    "installer",
+    "growthnirvana"
+  ],
+  "license": "MIT"
+}
