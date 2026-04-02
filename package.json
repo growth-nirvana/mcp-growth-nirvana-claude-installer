@@ -1,6 +1,6 @@
 {
   "name": "@growthnirvana/claude-mcp-installer",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "CLI and plugin package for Growth Nirvana MCP + Claude skills.",
   "type": "commonjs",
   "bin": {
