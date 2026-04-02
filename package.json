@@ -4,7 +4,7 @@
   "description": "CLI to configure Growth Nirvana MCP server in Claude Desktop.",
   "type": "commonjs",
   "bin": {
-    "gn-claude-mcp": "./scripts/install.js"
+    "gn-claude-mcp": "scripts/install.js"
   },
   "main": "scripts/install.js",
   "engines": {
