@@ -11,6 +11,34 @@ Install and maintain a ready-to-run MCP server entry and Growth Nirvana skills f
 - Includes a standard Claude plugin manifest at `.claude-plugin/plugin.json`.
 - Works as a repeatable command for onboarding and support.
 
+## Setup (First Time Only)
+
+### Get Your API Key
+
+Obtain a Growth Nirvana MCP API key from the Growth Nirvana dashboard (Settings → API Keys).
+
+### Set Up Environment Variables
+
+Add your API key to `.env.local` (kept out of git):
+
+```bash
+echo 'GROWTH_NIRVANA_API_KEY=gnmcp_your_key_here' > .env.local
+```
+
+Or manually edit `.env.local`:
+
+```
+GROWTH_NIRVANA_API_KEY=gnmcp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+Make sure `.env.local` is in `.gitignore`:
+
+```bash
+echo '.env.local' >> .gitignore
+```
+
+---
+
 ## Quick Start
 
 ### 1) Initialize project MCP config
