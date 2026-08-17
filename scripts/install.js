@@ -39,12 +39,14 @@ process.exit(1);
 function handleInit(commandArgs) {
   const configPath = resolveConfigPath(getOptionValue(commandArgs, "--config"));
   const force = commandArgs.includes("--force");
-  const useEnvLocal = commandArgs.includes("--use-env-local");
   const serverName = getOptionValue(commandArgs, "--server-name") || DEFAULT_SERVER_NAME;
   const pinnedVersion = getOptionValue(commandArgs, "--pin-server-version");
   const serverPackage = pinnedVersion
     ? `${DEFAULT_SERVER_PACKAGE}@${pinnedVersion}`
     : DEFAULT_SERVER_PACKAGE;
+
+  // Auto-detect .env.local; use shell wrapper if it exists
+  const hasEnvLocal = fs.existsSync(path.join(process.cwd(), ".env.local"));
 
   const config = readJsonMaybe(configPath) || {};
   if (!config.mcpServers || typeof config.mcpServers !== "object") {
@@ -58,7 +60,7 @@ function handleInit(commandArgs) {
     process.exit(1);
   }
 
-  if (useEnvLocal) {
+  if (hasEnvLocal) {
     // Shell wrapper that sources .env.local and .env files
     config.mcpServers[serverName] = {
       command: "/bin/zsh",
@@ -89,9 +91,9 @@ function handleInit(commandArgs) {
   console.log(`Added server "${serverName}" using package "${serverPackage}".`);
   console.log("");
   console.log("Next steps:");
-  if (useEnvLocal) {
-    console.log("1) Create .env.local in your project root with: GROWTH_NIRVANA_API_KEY=gnmcp_...");
-    console.log("2) Add .env.local to .gitignore to keep secrets out of version control.");
+  if (hasEnvLocal) {
+    console.log("1) Verify .env.local contains: GROWTH_NIRVANA_API_KEY=gnmcp_...");
+    console.log("2) Verify .env.local is in .gitignore (to keep secrets out of version control).");
     console.log("3) Reload your editor so MCP config is re-read.");
   } else {
     console.log("1) Set GROWTH_NIRVANA_API_KEY in your editor/runtime environment.");
@@ -207,16 +209,20 @@ function printHelp() {
   console.log("Growth Nirvana Claude MCP + Skills Installer");
   console.log("");
   console.log("Usage:");
-  console.log("  gn-claude-mcp init [--config <path>] [--server-name <name>] [--force] [--pin-server-version <version>] [--use-env-local]");
+  console.log("  gn-claude-mcp init [--config <path>] [--server-name <name>] [--force] [--pin-server-version <version>]");
   console.log("  gn-claude-mcp remove [--config <path>] [--server-name <name>]");
   console.log("  gn-claude-mcp add-skills [--global] [--target <path>]");
   console.log("");
   console.log("Options:");
-  console.log("  --use-env-local           Source GROWTH_NIRVANA_API_KEY from .env.local / .env");
+  console.log("  --config <path>           Custom MCP config file path (default: .mcp.json)");
+  console.log("  --server-name <name>      MCP server key (default: growth-nirvana)");
+  console.log("  --force                   Overwrite existing server entry");
+  console.log("  --pin-server-version      Pin growth-nirvana-mcp-server to specific version");
+  console.log("  --global                  For add-skills, install to ~/.claude/skills");
+  console.log("  --target <path>           For add-skills, install to custom directory");
   console.log("");
   console.log("Examples:");
   console.log("  npx @growthnirvana/claude-mcp-installer init");
-  console.log("  npx @growthnirvana/claude-mcp-installer init --use-env-local");
   console.log("  npx @growthnirvana/claude-mcp-installer init --force");
   console.log("  npx @growthnirvana/claude-mcp-installer init --config .mcp.json");
   console.log("  npx @growthnirvana/claude-mcp-installer init --pin-server-version 1.2.3");

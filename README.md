@@ -17,41 +17,30 @@ Install and maintain a ready-to-run MCP server entry and Growth Nirvana skills f
 
 Obtain a Growth Nirvana MCP API key from the Growth Nirvana dashboard (Settings → API Keys).
 
-### Set Up Environment Variables
-
-Add your API key to `.env.local` (kept out of git):
-
-```bash
-echo 'GROWTH_NIRVANA_API_KEY=gnmcp_your_key_here' > .env.local
-```
-
-Or manually edit `.env.local`:
-
-```
-GROWTH_NIRVANA_API_KEY=gnmcp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-
-Make sure `.env.local` is in `.gitignore`:
-
-```bash
-echo '.env.local' >> .gitignore
-```
-
 ---
 
 ## Quick Start
 
-### 1) Initialize project MCP config
+### 1) Create `.env.local` with your API key
+
+```bash
+echo 'GROWTH_NIRVANA_API_KEY=gnmcp_your_key_here' > .env.local
+echo '.env.local' >> .gitignore
+```
+
+### 2) Initialize project MCP config
 
 ```bash
 npx @growthnirvana/claude-mcp-installer init
 ```
 
+The installer auto-detects `.env.local` and configures the MCP server to use it.
+
 This adds an MCP server entry named `growth-nirvana` to:
 
 - `./.mcp.json` (project root)
 
-### 2) Install skills into your project
+### 3) Install skills into your project
 
 ```bash
 npx @growthnirvana/claude-mcp-installer add-skills
@@ -61,7 +50,9 @@ This installs skills to:
 
 - `./.claude/skills/`
 
-Then reload your editor (VS Code/Cursor/Claude Code) so MCP config and skills are re-read.
+### 4) Reload your editor
+
+Reload your editor (VS Code/Cursor/Claude Code) so MCP config and skills are re-read.
 
 ## Claude Plugin Structure
 
@@ -91,33 +82,38 @@ npx @growthnirvana/claude-mcp-installer add-skills --global
 - `--global`: for `add-skills`, install to `~/.claude/skills`
 - `--target <path>`: for `add-skills`, install to a custom skills directory
 
-## API Key
+## API Key & Security
 
-The installer does **not** write `GROWTH_NIRVANA_API_KEY` into `.mcp.json`.
-Your editor/runtime starts MCP servers as child processes, and those processes inherit runtime environment variables.
-So the key is read at runtime from environment variables available to your editor session.
+### Automatic `.env.local` Detection
 
-## Security Best Practices
+The installer auto-detects if `.env.local` exists in your project root:
 
-- Do not commit secret values in repo-local config files.
-- If you use project-local MCP config, add it to `.gitignore` when it may contain secrets.
-- Keep API keys in environment variables, not JSON config.
+- **If found:** Configures the MCP server to source `GROWTH_NIRVANA_API_KEY` from `.env.local` (or `.env` as fallback)
+- **If not found:** Uses environment variables from your editor/shell session
 
-Suggested `.gitignore` entries:
+### `.env.local` Method (Recommended for Projects)
 
-```gitignore
-# MCP config files (may contain secrets)
-mcp.json
-.mcp.json
-.cursor/mcp.json
-```
-
-## Setting `GROWTH_NIRVANA_API_KEY` Safely
-
-Recommended (per-project shell session):
+Create `.env.local` in your project root:
 
 ```bash
-export GROWTH_NIRVANA_API_KEY="your_api_key_here"
+echo 'GROWTH_NIRVANA_API_KEY=gnmcp_your_key_here' > .env.local
+```
+
+Add to `.gitignore`:
+
+```bash
+echo '.env.local' >> .gitignore
+```
+
+The installer will automatically configure the MCP server to read from this file.
+
+### Environment Variable Method (Recommended for Persistence)
+
+Set the API key in your shell profile (`.zshrc`, `.bashrc`, etc.):
+
+```bash
+echo 'export GROWTH_NIRVANA_API_KEY="gnmcp_your_key_here"' >> ~/.zshrc
+source ~/.zshrc
 ```
 
 Then start/restart your editor from that shell session.
@@ -128,18 +124,22 @@ Check it was set:
 echo "$GROWTH_NIRVANA_API_KEY"
 ```
 
-Persistent shell profile setup:
+## Security Best Practices
 
-```bash
-echo 'export GROWTH_NIRVANA_API_KEY="your_api_key_here"' >> ~/.zshrc
-source ~/.zshrc
+- Do not commit `.env.local` to version control (add to `.gitignore`)
+- Do not commit secret values in `.mcp.json` or other config files
+- Keep API keys in environment variables or `.env.local`, never in JSON config
+
+Suggested `.gitignore` entries:
+
+```gitignore
+.env.local
+.env
+# MCP config files (may contain secrets)
+mcp.json
+.mcp.json
+.cursor/mcp.json
 ```
-
-How the read path works:
-
-- `.mcp.json` starts the server with `npx -y growth-nirvana-mcp-server`.
-- Your editor/runtime passes its environment to that process.
-- The server reads `GROWTH_NIRVANA_API_KEY` from that inherited environment.
 
 ## Releasing (Assumes `v1.0.0` already exists)
 
