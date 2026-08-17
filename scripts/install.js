@@ -39,6 +39,7 @@ process.exit(1);
 function handleInit(commandArgs) {
   const configPath = resolveConfigPath(getOptionValue(commandArgs, "--config"));
   const force = commandArgs.includes("--force");
+  const useEnvLocal = commandArgs.includes("--use-env-local");
   const serverName = getOptionValue(commandArgs, "--server-name") || DEFAULT_SERVER_NAME;
   const pinnedVersion = getOptionValue(commandArgs, "--pin-server-version");
   const serverPackage = pinnedVersion
@@ -57,16 +58,27 @@ function handleInit(commandArgs) {
     process.exit(1);
   }
 
-  config.mcpServers[serverName] = {
-    command: "npx",
-    args: ["-y", serverPackage],
-    env: {
-      GROWTH_NIRVANA_BASE_URL:
-        process.env.GROWTH_NIRVANA_BASE_URL || "https://app.growthnirvana.com",
-      GROWTH_NIRVANA_TIMEOUT_MS: process.env.GROWTH_NIRVANA_TIMEOUT_MS || "15000",
-      GROWTH_NIRVANA_MAX_RETRIES: process.env.GROWTH_NIRVANA_MAX_RETRIES || "3"
-    }
-  };
+  if (useEnvLocal) {
+    // Shell wrapper that sources .env.local and .env files
+    config.mcpServers[serverName] = {
+      command: "/bin/zsh",
+      args: [
+        "-lc",
+        `set -a; [ -f .env.local ] && source .env.local; [ -f .env ] && source .env; set +a; if [ -z "$GROWTH_NIRVANA_API_KEY" ]; then echo "Missing GROWTH_NIRVANA_API_KEY" >&2; exit 1; fi; GROWTH_NIRVANA_BASE_URL="\${GROWTH_NIRVANA_BASE_URL:-https://app.growthnirvana.com}" GROWTH_NIRVANA_TIMEOUT_MS="\${GROWTH_NIRVANA_TIMEOUT_MS:-15000}" GROWTH_NIRVANA_MAX_RETRIES="\${GROWTH_NIRVANA_MAX_RETRIES:-3}" npx -y ${serverPackage}`
+      ]
+    };
+  } else {
+    config.mcpServers[serverName] = {
+      command: "npx",
+      args: ["-y", serverPackage],
+      env: {
+        GROWTH_NIRVANA_BASE_URL:
+          process.env.GROWTH_NIRVANA_BASE_URL || "https://app.growthnirvana.com",
+        GROWTH_NIRVANA_TIMEOUT_MS: process.env.GROWTH_NIRVANA_TIMEOUT_MS || "15000",
+        GROWTH_NIRVANA_MAX_RETRIES: process.env.GROWTH_NIRVANA_MAX_RETRIES || "3"
+      }
+    };
+  }
 
   ensureDirectory(path.dirname(configPath));
   fs.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
@@ -77,8 +89,14 @@ function handleInit(commandArgs) {
   console.log(`Added server "${serverName}" using package "${serverPackage}".`);
   console.log("");
   console.log("Next steps:");
-  console.log("1) Set GROWTH_NIRVANA_API_KEY in your editor/runtime environment.");
-  console.log("2) Reload your editor so MCP config is re-read.");
+  if (useEnvLocal) {
+    console.log("1) Create .env.local in your project root with: GROWTH_NIRVANA_API_KEY=gnmcp_...");
+    console.log("2) Add .env.local to .gitignore to keep secrets out of version control.");
+    console.log("3) Reload your editor so MCP config is re-read.");
+  } else {
+    console.log("1) Set GROWTH_NIRVANA_API_KEY in your editor/runtime environment.");
+    console.log("2) Reload your editor so MCP config is re-read.");
+  }
 }
 
 function handleRemove(commandArgs) {
@@ -189,12 +207,16 @@ function printHelp() {
   console.log("Growth Nirvana Claude MCP + Skills Installer");
   console.log("");
   console.log("Usage:");
-  console.log("  gn-claude-mcp init [--config <path>] [--server-name <name>] [--force] [--pin-server-version <version>]");
+  console.log("  gn-claude-mcp init [--config <path>] [--server-name <name>] [--force] [--pin-server-version <version>] [--use-env-local]");
   console.log("  gn-claude-mcp remove [--config <path>] [--server-name <name>]");
   console.log("  gn-claude-mcp add-skills [--global] [--target <path>]");
   console.log("");
+  console.log("Options:");
+  console.log("  --use-env-local           Source GROWTH_NIRVANA_API_KEY from .env.local / .env");
+  console.log("");
   console.log("Examples:");
   console.log("  npx @growthnirvana/claude-mcp-installer init");
+  console.log("  npx @growthnirvana/claude-mcp-installer init --use-env-local");
   console.log("  npx @growthnirvana/claude-mcp-installer init --force");
   console.log("  npx @growthnirvana/claude-mcp-installer init --config .mcp.json");
   console.log("  npx @growthnirvana/claude-mcp-installer init --pin-server-version 1.2.3");
